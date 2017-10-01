@@ -217,7 +217,18 @@ public class Table
 
         List <Comparable []> rows = new ArrayList <> ();
 
-        //  T O   B E   I M P L E M E N T E D 
+        //----implementation----
+        
+        rows.addAll(this.tuples);//adds table 1 to rows
+        for (Map.Entry<KeyType, Comparable[]> t : table2.index.entrySet()) //loops thorugh table 2
+        {	
+        	if (this.index.get(t.getKey()) == null) 
+        	{
+        		rows.add(t.getValue());//adds unique values of table 1 to rows
+        	}
+        }
+        
+        //----implementation----
 
         return new Table (name + count++, attribute, domain, key, rows);
     } // union
