@@ -76,8 +76,8 @@ public class Table
     {
         switch (mType) {
         case TREE_MAP:    return new TreeMap <> ();
-        case LINHASH_MAP: return new LinHashMap <> (KeyType.class, Comparable [].class);
-        case BPTREE_MAP:  return new BpTreeMap <> (KeyType.class, Comparable [].class);
+        //case LINHASH_MAP: return new LinHashMap <> (KeyType.class, Comparable [].class);
+        //case BPTREE_MAP:  return new BpTreeMap <> (KeyType.class, Comparable [].class);
         default:          return null;
         } // switch
     } // makeMap
@@ -249,8 +249,19 @@ public class Table
 
         List <Comparable []> rows = new ArrayList <> ();
 
-        //  T O   B E   I M P L E M E N T E D 
-
+        //----implementation----
+		
+		rows.addAll(this.tuples);	//adds table 1 to rows
+		for (Map.Entry<KeyType, Comparable[]> t : table2.index.entrySet()) //loops thorugh table 2
+        {	
+        	if (this.index.get(t.getKey()) != null)		//checks if same tuples exist in table 1 as in table 2
+        	{
+        		rows.remove(t.getValue());	//removes values of table 2 found in rows
+        	}
+        }
+        
+        //----implementation----
+		
         return new Table (name + count++, attribute, domain, key, rows);
     } // minus
 
