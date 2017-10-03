@@ -162,7 +162,13 @@ public class Table
 
         List <Comparable []> rows = new ArrayList <> ();
 
-        //  T O   B E   I M P L E M E N T E D 
+        //------implementation----
+		/*for (Map.Entry<KeyType, Comparable[]> t : index.entrySet()) //loops on the table tuples
+            rows.add(extract(t.getValue(), attrs));
+			*/
+		for(Comparable [] tupl : tuples)
+            rows.add(extract(tupl, attrs));
+        //------implementation---- 
 
         return new Table (name + count++, attrs, colDomain, newKey, rows);
     } // project
@@ -197,7 +203,10 @@ public class Table
 
         List <Comparable []> rows = new ArrayList <> ();
 
-        //  T O   B E   I M P L E M E N T E D 
+        //-----implementation----
+		// Get the tuple which has the corresponding key
+		rows.add(index.get(keyVal));
+        //-----implementation---- 
 
         return new Table (name + count++, attribute, domain, key, rows);
     } // select
@@ -288,10 +297,40 @@ public class Table
 
         List <Comparable []> rows = new ArrayList <> ();
 
-        //  T O   B E   I M P L E M E N T E D 
+        //-----implementation----
+		//checking no. of attributes is same.
+		if (t_attrs.length != u_attrs.length)
+			return null;
+		
+		for (Map.Entry<KeyType, Comparable[]> t1 : index.entrySet()){	//table 1 loop
+			for (Map.Entry<KeyType, Comparable[]> t2 : table2.index.entrySet()){	//table 2 loop
+				
+				//storing tuple values for the attributes
+				Comparable[] attr_t1 = extract(t1.getValue(), t_attrs);
+        		Comparable[] attr_t2 = table2.extract(t2.getValue(), u_attrs);
+        		
+        		boolean match = true;
+        		for (int i=0; i<attr_t1.length; i++)
+        			if (attr_t1[i].compareTo(attr_t2[i])!=0)	//compares the joining attribute values
+						match = false;
+        		if (match){
+        			rows.add(ArrayUtil.concat(t1.getValue(), t2.getValue()));
+				}
+        	}
+		}
+		//Disambiguating attribute names by appending "2" to the end of any duplicate attribute name
+        String[] attr_dupli = ArrayUtil.concat (attribute, table2.attribute);
+        for (int i=0; i < attr_dupli.length; i++) {
+        	for (int j=0; j < i; j++)
+        		if (attr_dupli[i].equals(attr_dupli[j]))
+					attr_dupli[i] += '2';
+        }
 
-        return new Table (name + count++, ArrayUtil.concat (attribute, table2.attribute),
-                                          ArrayUtil.concat (domain, table2.domain), key, rows);
+        return new Table (name + count++, attr_dupli, ArrayUtil.concat (domain, table2.domain), key, rows);
+		//-----implementation---- 
+		
+		/*return new Table (name + count++, attr_dupli,//ArrayUtil.concat (attribute, table2.attribute),
+                                          ArrayUtil.concat (domain, table2.domain), key, rows);*/
     } // join
 
     /************************************************************************************
@@ -338,11 +377,37 @@ public class Table
 
         List <Comparable []> rows = new ArrayList <> ();
 
-        //  T O   B E   I M P L E M E N T E D 
+        //-----implementation----
+		for (Map.Entry<KeyType, Comparable[]> t : index.entrySet()) {
+			// Get the tuple from table2 which matches with the key from current table
+			Comparable[] table2Temp = table2.index.get(t.getKey());
+
+			if (table2Temp != null) {
+				Comparable[] combined = ArrayUtil.concat(t.getValue(),table2Temp);
+				rows.add(combined);
+			}
+		}
 
         // FIX - eliminate duplicate columns
-        return new Table (name + count++, ArrayUtil.concat (attribute, table2.attribute),
+		Table join_result = new Table (name, ArrayUtil.concat (attribute, table2.attribute),
                                           ArrayUtil.concat (domain, table2.domain), key, rows);
+        //create a string containing all non duplicate attributes
+        String final_attrs = "";
+        for (int i=0; i<join_result.attribute.length; i++) {
+        	boolean duplicate = false;
+        	for (int j=0; j<i; j++)
+        		if (join_result.attribute[j].equals(join_result.attribute[i])) 
+					duplicate = true; 
+        	if (!duplicate) 
+				final_attrs += join_result.attribute[i]+" ";	//concatenate this next attribute which is not duplicate
+        }
+        //project result according to final attributes
+        join_result = join_result.project(final_attrs);
+        return join_result;
+		//-----implementation----
+		
+        //return new Table (name + count++, ArrayUtil.concat (attribute, table2.attribute),
+        //                                  ArrayUtil.concat (domain, table2.domain), key, rows);
     } // join
 
     /************************************************************************************

@@ -137,7 +137,7 @@ class MovieDB
         out.println ();
         Table t_join = movie.join ("studioName", "name", studio);
         t_join.print ();
-
+		
         //--------------------- natural join: movie JOIN studio
 
         out.println ();
