@@ -143,6 +143,12 @@ public class LinHashMap <K, V>
         int i = h (key);
         //out.println ("LinearHashMap.put: key = " + key + ", h() = " + i + ", value = " + value);
         // implementation-----
+        /*if(hTable.size() == 0){//if hTable is empty, add first value
+        	Bucket xd = hTable.get(0);
+        	xd.key[0] = key;
+        	xd.value[0] = value;
+        	return null;
+        }*/
         if(i<split){
             i=h2(key);
         }
