@@ -83,6 +83,7 @@ public class LinHashMap <K, V>
         hTable = new ArrayList <> ();
         mod1   = 4;                        // initSize;
         mod2   = 2 * mod1;
+	//i love it when i need to add external code to get the code im actually supposed to implement working
 	for(int i = 0;i < mod1;i++){
     		hTable.add(new Bucket(null));
     	}
