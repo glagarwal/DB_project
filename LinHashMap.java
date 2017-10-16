@@ -83,6 +83,9 @@ public class LinHashMap <K, V>
         hTable = new ArrayList <> ();
         mod1   = 4;                        // initSize;
         mod2   = 2 * mod1;
+	for(int i = 0;i < mod1;i++){
+    		hTable.add(new Bucket(null));
+    	}
     } // constructor
 
     /********************************************************************************
