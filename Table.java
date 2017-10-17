@@ -359,16 +359,19 @@ public class Table
     public Table h_join (String attributes1, String attributes2, Table table2)
     {
     	HashMap<String, Comparable[]> hash = new HashMap<String, Comparable[]>();
-    	for (int i = 0; i < this.tuples.size(); i++) {
-    	    hash.put(attributes1, tuples.get(i));
+    	for (int i = 0; i < this.tuples.size(); i++) {//add data of attributes 1 from this table to hash
+    		//Comparable[] v = hash.get(attributes1);
+            //v.add(this.tuples);
+    		hash.put(attributes1, tuples.get(i));
     	}
     	ArrayList newtup = new ArrayList();
-    	for(int i = 0; i < table2.tuples.size(); i++){
-    	    Comparable[] t1 = hash.get(attributes2);
-    	    newtup.add(new ArrayList(){this, table2});
+    	//for(int i = 0; i < table2.tuples.size(); i++){
+    	for(Comparable[] b : table2.tuples){
+    	    Comparable[] t1 = hash.get(attributes2);//
+    	    newtup.add(new Comparable[][]{t1,b});
     	}
     	Table j = new Table(this.name, this.attribute, this.domain, this.key, newtup);
-        return null;
+        return j;
     } // h_join
 
     /************************************************************************************
