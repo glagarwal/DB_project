@@ -1,4 +1,4 @@
-
+package uga_db_proj1;
 /****************************************************************************************
  * @file  Table.java
  *
@@ -67,7 +67,7 @@ public class Table
 
     /** The map type to be used for indices.  Change as needed.
      */
-    private static final MapType mType = MapType.TREE_MAP;
+    private static final MapType mType = MapType.BPTREE_MAP;
 
     /************************************************************************************
      * Make a map (index) given the MapType.
@@ -76,8 +76,8 @@ public class Table
     {
         switch (mType) {
         case TREE_MAP:    return new TreeMap <> ();
-        //case LINHASH_MAP: return new LinHashMap <> (KeyType.class, Comparable [].class);
-        //case BPTREE_MAP:  return new BpTreeMap <> (KeyType.class, Comparable [].class);
+        case LINHASH_MAP: return new LinHashMap <> (KeyType.class, Comparable [].class);
+        case BPTREE_MAP:  return new BpTreeMap <> (KeyType.class, Comparable [].class);
         default:          return null;
         } // switch
     } // makeMap
@@ -205,7 +205,14 @@ public class Table
 
         //-----implementation----
 		// Get the tuple which has the corresponding key
-		rows.add(index.get(keyVal));
+		if(index.get(keyVal)!=null)
+                {    
+                    rows.add(index.get(keyVal));
+                }
+                else
+                {
+                    out.println("No records returned. Please enter correct key value set");
+                }    
         //-----implementation---- 
 
         return new Table (name + count++, attribute, domain, key, rows);
@@ -254,7 +261,7 @@ public class Table
     public Table minus (Table table2)
     {
         out.println ("RA> " + name + ".minus (" + table2.name + ")");
-        if (! compatible (table2)) return null;
+        if (! compatible (table2)) out.println("Please check union compatibility on the given relations");
 
         List <Comparable []> rows = new ArrayList <> ();
 
@@ -302,11 +309,70 @@ public class Table
 		if (t_attrs.length != u_attrs.length)
 			return null;
 		
+		for (Comparable[] t1 : tuples){	//table 1 loop
+			for (Comparable[] t2 : table2.tuples){	//table 2 loop
+				
+				//storing tuple values for the attributes
+				Comparable[] attr_t1 = extract(t1, t_attrs);
+        		Comparable[] attr_t2 = table2.extract(t2, u_attrs);
+        		
+        		boolean match = true;
+        		for (int i=0; i<attr_t1.length; i++)
+        			if (attr_t1[i].compareTo(attr_t2[i])!=0)	//compares the joining attribute values
+						match = false;
+        		if (match){
+        			rows.add(ArrayUtil.concat(t1, t2));
+				}
+        	}
+		}
+		//Disambiguating attribute names by appending "2" to the end of any duplicate attribute name
+        String[] attr_dupli = ArrayUtil.concat (attribute, table2.attribute);
+        for (int i=0; i < attr_dupli.length; i++) {
+        	for (int j=0; j < i; j++)
+        		if (attr_dupli[i].equals(attr_dupli[j]))
+					attr_dupli[i] += '2';
+        }
+
+        return new Table (name + count++, attr_dupli, ArrayUtil.concat (domain, table2.domain), key, rows);
+		//-----implementation---- 
+		
+		
+    } // join
+
+    /************************************************************************************
+     * Join this table and table2 by performing an "equi-join".  Same as above, but implemented
+     * using an Index Join algorithm.
+     *
+     * @param attribute1  the attributes of this table to be compared (Foreign Key)
+     * @param attribute2  the attributes of table2 to be compared (Primary Key)
+     * @param table2      the rhs table in the join operation
+     * @return  a table with tuples satisfying the equality predicate
+     */
+    public Table i_join (String attributes1, String attributes2, Table table2)
+    {
+        //-----implementation----
+		out.println ("RA> " + name + ".i_join (" + attributes1 + ", " + attributes2 + ", "
+                                               + table2.name + ")");
+
+        String [] t_attrs = attributes1.split (" ");
+        String [] u_attrs = attributes2.split (" ");
+        
+//        int pos1 = Arrays.asList(this.attribute).indexOf(t_attrs[0]);
+//        System.out.println(pos1);
+//        int pos2 = Arrays.asList(table2.attribute).indexOf(u_attrs[0]);
+//        System.out.println(pos2);        
+
+        List <Comparable []> rows = new ArrayList <> ();
+
+		//checking no. of attributes is same.
+		if (t_attrs.length != u_attrs.length)
+			return null;
+/*		
 		for (Map.Entry<KeyType, Comparable[]> t1 : index.entrySet()){	//table 1 loop
 			for (Map.Entry<KeyType, Comparable[]> t2 : table2.index.entrySet()){	//table 2 loop
 				
 				//storing tuple values for the attributes
-				Comparable[] attr_t1 = extract(t1.getValue(), t_attrs);
+			Comparable[] attr_t1 = extract(t1.getValue(), t_attrs);
         		Comparable[] attr_t2 = table2.extract(t2.getValue(), u_attrs);
         		
         		boolean match = true;
@@ -326,25 +392,40 @@ public class Table
 					attr_dupli[i] += '2';
         }
 
-        return new Table (name + count++, attr_dupli, ArrayUtil.concat (domain, table2.domain), key, rows);
-		//-----implementation---- 
-		
-		/*return new Table (name + count++, attr_dupli,//ArrayUtil.concat (attribute, table2.attribute),
-                                          ArrayUtil.concat (domain, table2.domain), key, rows);*/
-    } // join
+    //    return new Table (name + count++, attr_dupli, ArrayUtil.concat (domain, table2.domain), key, rows);
 
-    /************************************************************************************
-     * Join this table and table2 by performing an "equi-join".  Same as above, but implemented
-     * using an Index Join algorithm.
-     *
-     * @param attribute1  the attributes of this table to be compared (Foreign Key)
-     * @param attribute2  the attributes of table2 to be compared (Primary Key)
-     * @param table2      the rhs table in the join operation
-     * @return  a table with tuples satisfying the equality predicate
-     */
-    public Table i_join (String attributes1, String attributes2, Table table2)
-    {
-        return null;
+ */     
+
+
+		// Intialize data structure
+		rows = new ArrayList<Comparable[]>();
+
+		// Iterate through tuples
+		for (Map.Entry<KeyType, Comparable[]> e : index.entrySet()) {
+			// Get the tuple from table2 which matches with the foreign key from
+			// current table
+			Comparable[] table2Temp = table2.index.get(new KeyType(extract(
+					e.getValue(), t_attrs)));
+
+			// Check if tupple from table2 exists
+			if (table2Temp == null) {
+				continue;
+			}
+			// Create a new tupple for concat
+			Comparable[] combined = new Comparable[attribute.length
+					+ table2.attribute.length];
+
+			// Do the concat
+			System.arraycopy(e.getValue(), 0, combined, 0, e.getValue().length);
+			System.arraycopy(table2Temp, 0, combined, e.getValue().length,
+					table2Temp.length);
+
+			// Add tupple to List
+			rows.add(combined);
+                }
+               	return new Table (name + count++, ArrayUtil.concat (attribute, table2.attribute),
+                ArrayUtil.concat (domain, table2.domain), key, rows);
+         // return null;
     } // i_join
 
     /************************************************************************************
@@ -358,37 +439,23 @@ public class Table
      */
     public Table h_join (String attributes1, String attributes2, Table table2)
     {
-    	/*
-    	HashMap<String, Comparable[]> hash = new HashMap<String, Comparable[]>();
-    	for (int i = 0; i < this.tuples.size(); i++) {//add data of attributes 1 from this table to hash
-    		//Comparable[] v = hash.get(attributes1);
-            //v.add(this.tuples);
-    		hash.put(attributes1, tuples.get(i));
-    	}
-    	ArrayList newtup = new ArrayList();
-    	//for(int i = 0; i < table2.tuples.size(); i++){
-    	for(Comparable[] b : table2.tuples){
-    	    Comparable[] t1 = hash.get(attributes2);//
-    	    newtup.add(new Comparable[][]{t1,b});
-    	}
-    	*/
-    	
     	HashMap<String, String> hash = new HashMap<String, String>();
     	List <Comparable []> rows = new ArrayList <> ();
     	
-    	for (String attribute1 : this.attribute) {//add all values of table1 attributes to hashmap based on
+    	for (String attribute1 : table2.attribute) {//add all values of table1 attributes to hashmap based on
     		//attributes 1
     		hash.put(attributes1, attribute1);
     	}
     	
     	for (String attribute2 : table2.attribute) {//for each row of table 2
-    		String lst = hash.get(attributes2);//pull value of table1 from the hashmap based on attributes2
+    		String lst = hash.get(attribute2);//pull value of table1 from the hashmap based on attributes2
     		//and put it is lst
     		rows.add(new String[]{lst, attribute2});//concat lst and the iterated attribute of table2 and put
     		//it in rows
     	}
     	return new Table (name + count++, ArrayUtil.concat (attribute, table2.attribute),
                 ArrayUtil.concat (domain, table2.domain), key, rows);
+        //return null;
     } // h_join
 
     /************************************************************************************
@@ -408,16 +475,21 @@ public class Table
         List <Comparable []> rows = new ArrayList <> ();
 
         //-----implementation----
+        try{
 		for (Map.Entry<KeyType, Comparable[]> t : index.entrySet()) {
 			// Get the tuple from table2 which matches with the key from current table
-			Comparable[] table2Temp = table2.index.get(t.getKey());
+			Comparable[] table_Temp = table2.index.get(t.getKey());
 
-			if (table2Temp != null) {
-				Comparable[] combined = ArrayUtil.concat(t.getValue(),table2Temp);
+			if (table_Temp != null) {
+				Comparable[] combined = ArrayUtil.concat(t.getValue(),table_Temp);
 				rows.add(combined);
 			}
 		}
-
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }    
         // FIX - eliminate duplicate columns
 		Table join_result = new Table (name, ArrayUtil.concat (attribute, table2.attribute),
                                           ArrayUtil.concat (domain, table2.domain), key, rows);
@@ -467,6 +539,10 @@ public class Table
     {
         out.println ("DML> insert into " + name + " values ( " + Arrays.toString (tup) + " )");
 
+        FileList fl = new FileList(name, tup.length);
+        fl.add(tup);
+        fl.get(0);
+        
         if (typeCheck (tup)) {
             tuples.add (tup);
             Comparable [] keyVal = new Comparable [key.length];

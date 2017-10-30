@@ -1,4 +1,4 @@
-
+package uga_db_proj1;
 /*****************************************************************************************
  * @file  MovieDB.java
  *
@@ -86,12 +86,12 @@ class MovieDB
         studio.insert (studio2);
         studio.print ();
 
-        movie.save ();
-        cinema.save ();
-        movieStar.save ();
-        starsIn.save ();
-        movieExec.save ();
-        studio.save ();
+//        movie.save ();        // The save() function has been commented out as it throws a FileNotFoundException
+//        cinema.save ();
+//        movieStar.save ();
+//        starsIn.save ();
+//        movieExec.save ();
+//        studio.save ();
 
         movieStar.printIndex ();
 
@@ -137,7 +137,18 @@ class MovieDB
         out.println ();
         Table t_join = movie.join ("studioName", "name", studio);
         t_join.print ();
-		
+        
+// Code by Akshay Agashe for h_join
+
+        out.println ("============h_join====================");
+        Table h_join = movie.h_join ("studioName", "name", studio);
+        h_join.print ();
+        
+        out.println ("============i_join====================");
+        Table i_join = movie.i_join ("studioName", "name", studio);
+        i_join.print ();
+//Code by Akshay Agashe for h_join
+  
         //--------------------- natural join: movie JOIN studio
 
         out.println ();
@@ -147,4 +158,3 @@ class MovieDB
     } // main
 
 } // MovieDB class
-
