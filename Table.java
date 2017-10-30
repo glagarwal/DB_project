@@ -358,6 +358,7 @@ public class Table
      */
     public Table h_join (String attributes1, String attributes2, Table table2)
     {
+    	/*
     	HashMap<String, Comparable[]> hash = new HashMap<String, Comparable[]>();
     	for (int i = 0; i < this.tuples.size(); i++) {//add data of attributes 1 from this table to hash
     		//Comparable[] v = hash.get(attributes1);
@@ -370,8 +371,24 @@ public class Table
     	    Comparable[] t1 = hash.get(attributes2);//
     	    newtup.add(new Comparable[][]{t1,b});
     	}
-    	Table j = new Table(this.name, this.attribute, this.domain, this.key, newtup);
-        return j;
+    	*/
+    	
+    	HashMap<String, String> hash = new HashMap<String, String>();
+    	List <Comparable []> rows = new ArrayList <> ();
+    	
+    	for (String attribute1 : this.attribute) {//add all values of table1 attributes to hashmap based on
+    		//attributes 1
+    		hash.put(attributes1, attribute1);
+    	}
+    	
+    	for (String attribute2 : table2.attribute) {//for each row of table 2
+    		String lst = hash.get(attributes2);//pull value of table1 from the hashmap based on attributes2
+    		//and put it is lst
+    		rows.add(new String[]{lst, attribute2});//concat lst and the iterated attribute of table2 and put
+    		//it in rows
+    	}
+    	return new Table (name + count++, ArrayUtil.concat (attribute, table2.attribute),
+                ArrayUtil.concat (domain, table2.domain), key, rows);
     } // h_join
 
     /************************************************************************************
